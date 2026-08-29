@@ -95,12 +95,10 @@ class Xruner:
 airfoil = "airfoils\\NACA4415.txt"
 naca_code = "2412"
 Rey = 1e6
-alpha = 3
-ite = 400
-filename = "juanito.txt"
-dump = "puta.txt"
 
+alpha = 3
 aseq = [-2, 15, 0.5]
+
 panels = [30, 400, 50]
 
 plot_datas = [("alpha", "CL"), ("alpha", "CD"), ("alpha", "L/D"), ("alpha", "CM")]
