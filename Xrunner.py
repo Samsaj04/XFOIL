@@ -1,7 +1,7 @@
 import subprocess
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+import plots
 
 class Xruner:
     def __init__(self, naca=None, airfoil=None, Re=None, pan=200, ite=400):
@@ -35,26 +35,23 @@ class Xruner:
         return script
 
     def run_alpha(self, AOA, filename, dumpfile=None, save_polar=False):
-        alfa_sim = f"ALFA {AOA}"
-        script = self._base_run(alfa_sim, filename, dumpfile)
-        
-        if not save_polar:
-            pass
-        else:
+        script = self._base_run(f"ALFA {AOA}", filename, dumpfile)
+        if save_polar:
             self.save_polar_csv(filename)
         return script
     
-    def run_aseq(self, aseq, filename, dumpfile=None, save_polar=False):
+    def run_aseq(self, aseq, filename, dumpfile=None, save_polar=False, plot_data=[]):
         aseq_sim = f"ASEQ {aseq[0]} {aseq[1]} {aseq[2]}"
         script = self._base_run(aseq_sim, filename, dumpfile)
-        
-        if not save_polar:
-            pass
-        else:
-            self.save_polar_csv(filename)
+        if save_polar:
+            polars_csv = self.save_polar_csv(filename)
+            if bool(plot_data):
+                df = pd.read_csv(polars_csv)
+                for var in plot_data:
+                    plots.plot_polar_pro(df[var[0]], df[var[1]], f"{var[0]} vs {var[1]}")
         return script
     
-    def run_mesh_conv(self, AOA, pan_range, filename, dumpfile=None, save_polar=False, plot=False):
+    def run_mesh_conv(self, AOA, pan_range, filename, dumpfile=None, save_polar=False, plot_data=[]):
         sim = ""
         pan = range(pan_range[0], pan_range[1], pan_range[2])
         for p in pan:
@@ -64,12 +61,9 @@ class Xruner:
             OPER
             ALFA {AOA}
             """
-        self.pan = pan_range[0]
         script = self._base_run(sim, filename, dumpfile)
         
-        if not save_polar:
-            pass
-        else:
+        if save_polar:
             polars_csv = self.save_polar_csv(filename)
             df = pd.read_csv(polars_csv)
             df.insert(0, "panels", 0)
@@ -79,14 +73,10 @@ class Xruner:
                 idx += 1
             df.to_csv(polars_csv, index=False)
             
-            if plot:
+            if bool(plot_data):
                 df = pd.read_csv(polars_csv)
-                plt.plot(df["panels"], df["CL"])
-                plt.grid(True)
-                plt.show()
-                plt.plot(df["panels"], df["CD"])
-                plt.grid(True)
-                plt.show()    
+                for var in plot_data:
+                    plots.plot_polar_pro(df["panels"], df[var], f"Mesh Convergence Study - Panels vs {var}")
         return script
 
     def save_polar_csv(self, filename):
@@ -110,12 +100,15 @@ ite = 400
 filename = "juanito.txt"
 dump = "puta.txt"
 
-aseq = [-2, 15, 1]
+aseq = [-2, 15, 0.5]
 panels = [30, 400, 50]
+
+plot_datas = [("alpha", "CL"), ("alpha", "CD"), ("alpha", "L/D"), ("alpha", "CM")]
+plot_conv = ["CL", "CD", "CM", "L/D"]
 
 juanito = Xruner(naca=naca_code, Re=Rey)
 #juanito.run_alpha(alpha, filename, save_polar=True)
-#juanito.run_aseq(aseq=aseq, filename=filename, save_polar=True)
-juanito.run_mesh_conv(AOA=alpha, pan_range=panels, filename=filename, save_polar=True, plot=True)
+juanito.run_aseq(aseq=aseq, filename="seq_alphas.txt", save_polar=True, plot_data=plot_datas)
+#juanito.run_mesh_conv(AOA=alpha, pan_range=panels, filename="mesh_conv.txt", save_polar=True, plot_data=plot_conv)
 
 
