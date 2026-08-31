@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
-import pandas as pd
+import numpy as np
+
 
 def plt_style(font_size, font):
     plt.style.use("seaborn-v0_8-paper")
@@ -13,70 +14,78 @@ def plt_style(font_size, font):
         "legend.fontsize": font_size,
         "figure.titlesize": font_size})
     
-def plot_zoom(zoom, X, Y):
-    
-    xmin = min(X)
-    xmax = max(X)
-    xavg = (xmin + xmax)/2
-    xran = xmax - xmin
-    
-    ymin = min(Y)
-    ymax = max(Y)
-    yavg = (ymin + ymax)/2
-    yran = ymax - ymin
-    
-    plot_range =  max([xran, yran]) + zoom
-    plt.set_xlim(xavg - plot_range/2, xavg + plot_range/2)
-    plt.set_ylim(yavg - plot_range/2, yavg + plot_range/2)
-    
-def plot_polar(X, Y, title, zoom=0):
-    plt.plot(X, Y)
-    plt.title(title)
-    plt.xlabel(X.name)
-    plt.ylabel(Y.name)
-    
-    if zoom != 0:
-        plot_zoom(zoom, X, Y)
+def N_name(data, N):
+    for n, i in enumerate(data.values()):
+        if (i==N).all():
+            return list(data.keys())[n]    
 
-    plt.grid(True)
-    plt.show()
+def opt_point(ax, data, X, Y, lab, col, maxi):
+    index = lambda n: np.argmax(n) if maxi else np.argmin(n)
+    X_name = N_name(data, X)
     
-def plot_polar_pro(X, Y, title, minorticks=True, zoom=0):
+    ax.axvline(x=X[index(Y)], linestyle="dotted", color=col, alpha=0.85, label=f"{X_name} = {X[index(Y)]}")
+    ax.axhline(y=Y[index(Y)], linestyle="dotted", color=col, alpha=0.85, label=f"{lab} = {Y[index(Y)]:.4f}")
+    ax.scatter(X[index(Y)], Y[index(Y)], color='r', zorder=10)
+    ax.legend()
+    
+
+def plot_polar_pro(data, X, Y, title, minorticks=True):
     plt_style(15, "Garamond")
     
     fig, ax = plt.subplots(figsize=(8, 8))
     
     ax.plot(X, Y, color="#6a408d")
     
+    X_name = N_name(data, X)
+    Y_name = N_name(data, Y)
+    
     ax.set_title(title)
-    ax.set_xlabel(X.name)
-    ax.set_ylabel(Y.name)
+    ax.set_xlabel(X_name)
+    ax.set_ylabel(Y_name)
     
-    if Y.name == "L/D":
-        opt_point(ax, X, Y, "L/D Max", "#9671bd", maxi=True)
-        
-    elif Y.name == "CL":
-        opt_point(ax, X, Y, "CL Max", "#9671bd", maxi=True)
-        
-    elif Y.name == "CD":
-        opt_point(ax, X, Y, "CD Min", "#9671bd", maxi=False)
+    if X_name != 'Panels':
+        if Y_name == "L/D":
+            opt_point(ax, data, X, Y, "L/D Max", "#9671bd", maxi=True)
+            
+        elif Y_name == "CL":
+            opt_point(ax, data, X, Y, "CL Max", "#9671bd", maxi=True)
+            
+        elif Y_name == "CD":
+            opt_point(ax, data, X, Y, "CD Min", "#9671bd", maxi=False)
     
-    #ax.set_aspect('equal', adjustable='datalim')
     ax.grid(True, which='major', linestyle='-', linewidth=0.75, alpha=0.25)
     if minorticks:
         ax.minorticks_on()
         ax.grid(True, which='minor', linestyle='-', linewidth=0.25, alpha=0.15)
     ax.set_axisbelow(True)
-    
-    if zoom != 0:
-        plot_zoom(zoom, X, Y)
 
     plt.show()
     
-def opt_point(ax, X, Y, lab, col, maxi):
-    index = lambda n: n.idxmax() if maxi else n.idxmin()
+def plot_airfoil(data, X, Y, title):
+    plt_style(15, "Garamond")
     
-    ax.axvline(x=X[index(Y)], linestyle="dotted", color=col, alpha=0.85, label=f"{X.name} = {X[index(Y)]}")
-    ax.axhline(y=Y[index(Y)], linestyle="dotted", color=col, alpha=0.85, label=f"{lab} = {Y[index(Y)]:.4f}")
-    ax.scatter(X[index(Y)], Y[index(Y)], color='r', zorder=10)
-    ax.legend()
+    fig, ax = plt.subplots()
+    
+    new_X = [X[n] for n in range(0, len(X), 5)]
+    new_Y = [Y[n] for n in range(0, len(Y), 5)]
+    
+    X_name = N_name(data, X)
+    Y_name = N_name(data, Y)
+    
+    ax.plot(X, Y, color="#6a408d")
+    ax.scatter(new_X, new_Y, s=10, color='red', zorder=10)
+    
+    ax.set_title(title)
+    ax.set_xlabel(X_name)
+    ax.set_ylabel(Y_name)
+    ax.set_aspect('equal')
+    ax.grid(True, which='major', linestyle='-', linewidth=0.75, alpha=0.25)
+
+    ax.minorticks_on()
+    ax.grid(True, which='minor', linestyle='-', linewidth=0.25, alpha=0.15)
+    ax.set_axisbelow(True)
+    
+    yavg = (min(Y) + max(Y))/2
+    ax.set_ylim(yavg - (max(Y)-min(Y))*1.2, yavg + (max(Y)-min(Y))*1.2)
+
+    plt.show()
