@@ -54,7 +54,7 @@ class Xruner:
                 plots.plot_polar_pro(polars, polars[var[0]], polars[var[1]], f"{var[0]} vs {var[1]}")
         return self.save_polar(filename)
     
-    def run_mesh_conv(self, AOA, pan_range, filename, plot_data=[]):
+    def run_mesh_conv(self, AOA, pan_range, filename, plot_data=None):
         sim = ""
         pan = np.array(range(pan_range[0], pan_range[1]+pan_range[2], pan_range[2]))
         for p in pan:
@@ -69,8 +69,13 @@ class Xruner:
         if bool(plot_data):
             polars = self.save_polar(filename)
             polars["Panels"] = pan
-            for var in plot_data:
-                plots.plot_polar_pro(polars, polars["Panels"], polars[var], f"Mesh Convergence Study - Panels vs {var}")
+            val = polars[plot_data]
+            res = np.zeros(len(val))
+            for i in range(1, len(val)):
+                res[i] = np.abs((val[i]-val[i-1])/val[i-1]) * 100
+            polars["Error"] = res
+            plots.plot_polar_pro(polars, polars["Panels"], polars[plot_data], f"Mesh Convergence Study - Panels vs {plot_data}")
+            plots.plot_polar_pro(polars, polars["Panels"], polars["Error"], f"Mesh Convergence Study - Panels vs Relative Error [%]")
         return self.save_polar(filename)
 
     def save_polar(self, filename):
