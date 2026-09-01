@@ -10,7 +10,7 @@ AOA_seq = [-2, 17, 0.5]
 panels = [100, 1000, 50]
 
 plot_datas = [("alpha","CL"), ("alpha","CD"), ("alpha","L/D"), ("alpha","CM")]
-plot_conv = ["CL", "CD", "CM", "L/D"]
+plot_conv = "CL"
 
 juanito = Xruner(airfoil=airfoil, Re=Rey)
 
