@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MultipleLocator
+from scipy.interpolate import CubicSpline
 import numpy as np
 
 
@@ -28,13 +30,22 @@ def opt_point(ax, data, X, Y, lab, col, maxi):
     ax.scatter(X[index(Y)], Y[index(Y)], color='r', zorder=10)
     ax.legend()
     
+def cubic_interp(X, Y, n=10):
+    spline = CubicSpline(X, Y)
+    X_new = np.linspace(X[0], X[-1], n*len(X))
+    Y_new = spline(X_new)
+    return X_new, Y_new
+
 
 def plot_polar_pro(data, X, Y, title, minorticks=True):
     plt_style(15, "Garamond")
     
     fig, ax = plt.subplots(figsize=(8, 8))
     
-    ax.plot(X, Y, color="#6a408d")
+    X_new, Y_new = cubic_interp(X, Y)
+    
+    #ax.plot(X, Y, color="#6a408d")
+    ax.plot(X_new, Y_new, color="#6a408d")
     
     X_name = N_name(data, X)
     Y_name = N_name(data, Y)
@@ -52,6 +63,8 @@ def plot_polar_pro(data, X, Y, title, minorticks=True):
             
         elif Y_name == "CD":
             opt_point(ax, data, X, Y, "CD Min", "#9671bd", maxi=False)
+            
+    ax.xaxis.set_major_locator(MultipleLocator(X.max()/10))
     
     ax.grid(True, which='major', linestyle='-', linewidth=0.75, alpha=0.25)
     if minorticks:
