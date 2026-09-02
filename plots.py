@@ -42,10 +42,10 @@ def plot_polar_pro(data, X, Y, title, minorticks=True):
     
     fig, ax = plt.subplots(figsize=(8, 8))
     
-    X_new, Y_new = cubic_interp(X, Y)
+    #X_new, Y_new = cubic_interp(X, Y)
     
-    #ax.plot(X, Y, color="#6a408d")
-    ax.plot(X_new, Y_new, color="#6a408d")
+    ax.plot(X, Y, color="#6a408d")
+    #ax.plot(X_new, Y_new, color="#6a408d")
     
     X_name = N_name(data, X)
     Y_name = N_name(data, Y)
@@ -64,9 +64,8 @@ def plot_polar_pro(data, X, Y, title, minorticks=True):
         elif Y_name == "CD":
             opt_point(ax, data, X, Y, "CD Min", "#9671bd", maxi=False)
             
-    ax.xaxis.set_major_locator(MultipleLocator(X.max()/10))
     
-    ax.grid(True, which='major', linestyle='-', linewidth=0.75, alpha=0.25)
+    ax.grid(True, linestyle='-', linewidth=0.75, alpha=0.25)
     if minorticks:
         ax.minorticks_on()
         ax.grid(True, which='minor', linestyle='-', linewidth=0.25, alpha=0.15)
