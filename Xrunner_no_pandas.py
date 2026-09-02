@@ -3,15 +3,18 @@ import numpy as np
 import plots
 
 class Xruner:
-    def __init__(self, naca=None, airfoil=None, Re=None, pan=200, ite=400):
+    def __init__(self, naca=None, airfoil=None, Re=None, mach=None, pan=200, ite=400, verbose=True):
         self.naca = naca
         self.airfoil = airfoil
         self.Re = Re
         self.pan = pan
         self.ite = ite
+        self.mach = mach
+        self.verbose = verbose
         
         self._visc = f"VISC {self.Re}" if self.Re is not None else f"VISC {1}\nVISC"
-        self._foil = f"LOAD {self.airfoil}\nPANE" if self.airfoil is not None else f"NACA {self.naca}"
+        self._mach = f"MACH {self.mach}" if self.mach is not None else f"MACH {0}"
+        self._foil = f"LOAD {self.airfoil}" if self.airfoil is not None else f"NACA {self.naca}"
         self._pacc = lambda file: f"PACC\n{file}\n"
         self._dump = lambda dump: f"DUMP {dump}\n" if dump is not None else ""
 
@@ -20,20 +23,24 @@ class Xruner:
             raise ValueError("You must add either NACA code or an Airfoil.dat file")
         
         script = f"""{self._foil}
+    PANE
     PPAR
     N {self.pan}\n\n
+    PANE
     OPER
     ITER {self.ite}
     {self._visc}
+    {self._mach}
     {self._pacc(filename)}
     {sim}
     {self._dump(dumpfile)}
     QUIT
     """
         execute = subprocess.run(["xfoil.exe"], input=script, text=True, capture_output=True)
-        print(execute.stdout)
+        if self.verbose:
+            print(execute.stdout)
         print("\nLISTOOOOOOOOOO")
-        return script
+        return script, execute.stdout
 
     def run_alpha(self, AOA, filename, dumpfile=None, airfoil_plot=False):
         self._base_run(f"ALFA {AOA}", filename, dumpfile)
@@ -77,6 +84,19 @@ class Xruner:
             plots.plot_polar_pro(polars, polars["Panels"], polars[plot_data], f"Mesh Convergence Study - Panels vs {plot_data}")
             plots.plot_polar_pro(polars, polars["Panels"], polars["Error"], f"Mesh Convergence Study - Panels vs Relative Error [%]")
         return self.save_polar(filename)
+    
+    #def _conv_panels(self, output):
+    #    conv = []
+    #    pan = None
+#
+    #    for l in output.splitlines():
+    #        if "Number of panel nodes" in l:
+    #            pan = int(l.split()[-1])
+    #            
+    #        if "Point added to stored polar" in l:
+    #            conv.append(pan)
+    #            
+    #    return np.array(conv)
 
     def save_polar(self, filename):
         polars = np.loadtxt(filename, skiprows=12, ndmin=2)
