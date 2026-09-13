@@ -1,4 +1,4 @@
-from Xrunner_OOP import Xruner
+from extra.Xrunner_OOP import Xruner
 from parsec_gen import parsec
 import numpy as np
 from scipy.optimize import minimize
