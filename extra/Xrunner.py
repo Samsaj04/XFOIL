@@ -1,6 +1,6 @@
 import subprocess
 import numpy as np
-import extra.plots as plots
+import extra.xfoil_plots as xfoil_plots
 #-------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ def run_alpha(AOA, airfoil=None, naca=None, Re=None, mach=None,
     if bool(dumpfile):
         if airfoil_plot:
             dumps = save_dump(dumpfile)
-            plots.plot_airfoil(dumps, dumps["x"], dumps["y"], "Airfoil")
+            xfoil_plots.plot_airfoil(dumps, dumps["x"], dumps["y"], "Airfoil")
         return save_polar(filename), dumps
     return save_polar(filename)
 
@@ -59,7 +59,7 @@ def run_aseq(aseq, airfoil=None, naca=None, Re=None, mach=None, iter=None,
     if bool(plot_data):
         polars = save_polar(filename)
         for var in plot_data:
-            plots.plot_polar_pro(polars, polars[var[0]], polars[var[1]], f"{var[0]} vs {var[1]}")
+            xfoil_plots.plot_polar_pro(polars, polars[var[0]], polars[var[1]], f"{var[0]} vs {var[1]}")
     return save_polar(filename)
 
 # Run-a-Mesh-Dependency-Study -------------------------------------------
@@ -78,7 +78,7 @@ def run_mesh_conv(AOA, pan_range, airfoil=None, naca=None, Re=None, mach=None, i
     
     if bool(plot_data):
         polars = save_polar(filename)
-        plots.plot_polar_pro(polars, pan, polars[plot_data], f"Mesh Convergence Study - Panels vs {plot_data}")
+        xfoil_plots.plot_polar_pro(polars, pan, polars[plot_data], f"Mesh Convergence Study - Panels vs {plot_data}")
     return save_polar(filename)
 
 def save_polar(filename):
