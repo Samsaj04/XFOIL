@@ -15,7 +15,7 @@ class Xruner:
         self.mach = mach        # Mach Number
         
         self.pan = pan          # Number of panels
-        self.ite = ite          # Number of Iterations
+        self.ite = ite          # Number of iterations
         
         self.verbose = verbose  # Output Xfoil analysis info
             
@@ -63,8 +63,8 @@ class Xruner:
         print("LISTOOOOOOOOOO")
         return script, execute.stdout # Return Xfoil script and Xfoil output
 
-    #---------------------------------------------------------------------------
-    #---------------------------------------------------------------------------
+    #===========================================================================
+    #===========================================================================
     
     # Run Alpha Analysis ===============
     def run_alpha(self, AOA, filename, dumpfile=None, timeout=None):
@@ -106,8 +106,8 @@ class Xruner:
     
         return polars
     
-    #---------------------------------------------------------------------------
-    #---------------------------------------------------------------------------
+    #===========================================================================
+    #===========================================================================
     
     # Save polar data in a dictionary ===============
     def save_polar(self, filename, visc):
