@@ -6,8 +6,20 @@ from scipy.optimize import minimize
 def optimize_nga(x0, func, Cl_des, ncx, AOA, Re, ite, pan):
     
     new_func = lambda h: func(h, Cl_des, ncx, AOA, Re, ite, pan)
-    
-    minval = minimize(new_func, x0, method='Nelder-Mead')
+    bounds=[	
+		(0,1),
+		(0,0),
+		(0,1),
+		(0,1),
+		(-1,1),
+		(-1,1),	
+		(0,1),
+		(-1,0),
+		(-1,1),
+		(-1,1),
+		(0,0),
+		(0,1)]
+    minval = minimize(new_func, x0, method='Nelder-Mead', bounds=bounds)
     x_min = minval.x
     
     for i, n in enumerate(x_min, start=1):
@@ -23,7 +35,8 @@ def func_CL(x0, Cl_des, ncx, AOA, Re, ite, pan):
     try:
         ecsfoil = Xruner(airfoil=[f"holaputa_opti.txt", f'foil_opt'], 
                      Re=Re, ite=ite, pan=pan, verbose=False)
-        data = ecsfoil.run_alpha(AOA=AOA, filename=f"alpha{AOA}_opt.txt")
+        
+        data = ecsfoil.run_alpha(AOA=AOA, filename=f"alpha{AOA}_opt.txt", timeout=2)
         return (data["Cl"][-1] - Cl_des)**2
     except:
         return 1e6
@@ -48,7 +61,7 @@ if __name__ == "__main__":
 	0.01550
 	])
 
-    Cl_des = 0.4
+    Cl_des = 0.65
     Re = 1e6
     ite = 200
     pan = 160
