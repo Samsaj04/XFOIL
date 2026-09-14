@@ -16,7 +16,7 @@ from math import floor, log
 # 	x1 = xa[0] #Rle 		--- Leading edge radius
 # 	x2 = xa[1] #Zteup 		--- Trailing edge vertical position
 # 	x3 = xa[2] #Xup 		--- Max height x position
-# 	x4 = xa[3] #Zup 		--- Max height
+# 	x4 = xa[3] #Zup 		--- Max height (+)
 # 	x5 = xa[4] #toTeup 		--- theta trailing edge 
 # 	x6 = xa[5] #d2dXup 		--- Max curvature 
 # # LOW---------------------------------
@@ -55,7 +55,7 @@ def parsec(xa,ncx): #ncx -> Number Count of X
 
 	#  Upper line ----------------------------------------------------
 	Aup = np.array( [ 
-		[Xte**(3.0/2.0),Xte**(5/2),  Xte**(7/2),  Xte**(9/2),  Xte**(11/2)],
+		[Xte**(3/2),Xte**(5/2),  Xte**(7/2),  Xte**(9/2),  Xte**(11/2)],
 		[x3**(3/2) ,x3**(5/2), x3**(7/2), x3**(9/2), x3**(11/2)],
 		[(3/2)*Xte**(1/2),(5/2)*Xte**(3/2), (7/2)*Xte**(5/2), (9/2)*Xte**(7/2), (11/2)*Xte**(9/2)],
 		[(3/2)*x3**(1/2),(5/2)*x3**(3/2), (7/2)*x3**(5/2), (9/2)*x3**(7/2), (11/2)*x3**(9/2)],
@@ -73,16 +73,12 @@ def parsec(xa,ncx): #ncx -> Number Count of X
 		])
 
 	alphaup = invAup.dot(Bup) # X = B * A^-1
-	a2up = alphaup[0]
-	a3up = alphaup[1] 
-	a4up = alphaup[2]
-	a5up = alphaup[3]
-	a6up = alphaup[4]
+	alphaup = np.insert(alphaup, 0, np.array([a1up]))
 
 	# print(alphaup)
 	#  Lower line ----------------------------------------------------
 	Alow = np.array( [ 
-		[Xte**(3.0/2.0),Xte**(5/2),  Xte**(7/2),  Xte**(9/2),  Xte**(11/2)],
+		[Xte**(3/2),Xte**(5/2),  Xte**(7/2),  Xte**(9/2),  Xte**(11/2)],
 		[x7**(3/2) ,x7**(5/2), x7**(7/2), x7**(9/2), x7**(11/2)],
 		[(3/2)*Xte**(1/2),(5/2)*Xte**(3/2), (7/2)*Xte**(5/2), (9/2)*Xte**(7/2), (11/2)*Xte**(9/2)],
 		[(3/2)*x7**(1/2),(5/2)*x7**(3/2), (7/2)*x7**(5/2), (9/2)*x7**(7/2), (11/2)*x7**(9/2)],
@@ -100,39 +96,31 @@ def parsec(xa,ncx): #ncx -> Number Count of X
 		])
 
 	alphalow = invAlow.dot(Blow)
-	a2low = alphalow[0]
-	a3low = alphalow[1]
-	a4low = alphalow[2] 
-	a5low = alphalow[3]
-	a6low = alphalow[4] 
+	alphalow = np.insert(alphalow, 0, np.array([a1low]))
 
 	# nc = 35  # keep odd xc.size
 	ang = np.linspace(0,np.pi,ncx)
 	xc = 0.5-0.5*np.cos(ang) 
 
 	# Building up the summ equation (slide 70) -----------------------
-	Zupper = a1up*xc**(1/2) + a2up*xc**(3/2) + a3up*xc**(5/2) + a4up*xc**(7/2) + a5up*xc**(9/2) + a6up*xc**(11/2)
-	Zlower = a1low*xc**(1/2) + a2low*xc**(3/2) + a3low*xc**(5/2) + a4low*xc**(7/2) + a5low*xc**(9/2) + a6low*xc**(11/2)
-	
-	# Saving alpha values -------------------------
-	Avals_up=[a1up,a2up,a3up,a4up,a5up,a6up]
-	Avals_low=[a1low,a2low,a3low,a4low,a5low,a6low]
+	Zupper = np.sum([alphaup[i]*xc**(i+1/2) for i in range(6)], axis=0)
+	Zlower = np.sum([alphalow[i]*xc**(i+1/2) for i in range(6)], axis=0)
 
 	# Flipping arrays to match airfoil dat file convention -----------
 	Zupper = np.flipud(Zupper)
 	xcup = np.flipud(xc)
-	xclow = xc 
+	xclow = xc
 	
 	# Vector containing the airfoil coordinates -------------------
 	Vectout=np.zeros((2*ncx-1,2))
 
-	for i in range(0,ncx):
+	for i in range(ncx):
 		Vectout[i][0]=xcup[i]
 		Vectout[i+ncx-1][0]=xclow[i]
 		Vectout[i][1]=Zupper[i]
 		Vectout[i+ncx-1][1]=Zlower[i] 
 
-	return Vectout, xc, Avals_up, Avals_low
+	return Vectout, xc, alphaup, alphalow
 
 #-----------------------------------------------------------------
 #-----------------------------------------------------------------
@@ -195,9 +183,9 @@ def main():
 		0.0000,
 		0.01550	
 		])
-
+ 
 	# Dfine a number of x points along the chord to generate the geometry.
-	ncx = int(60); # it has to be integer ----------------int((rows+1)/2)
+	ncx = 60; # it has to be integer ----------------int((rows+1)/2)
 
 	coords, xcors, Avals_up, Avals_low = parsec(x0,ncx)
 	plot_foil(coords)
